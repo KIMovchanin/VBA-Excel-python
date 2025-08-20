@@ -1,0 +1,18 @@
+sheets:
+  raw: "raw"
+  dict: "dict"
+
+columns:
+  date: "date"
+  code: "code"
+  qty: "qty"
+  price: "price"
+  price_override: "price_override"
+  category: "category"
+
+business_rules:
+  price_priority: "price_override_then_price"
+
+output:
+  sheet_name: "report"
+  revenue_column: "Выручка"

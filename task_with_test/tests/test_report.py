@@ -2,7 +2,7 @@ import pytest
 import pandas as pd
 from pandas.testing import assert_frame_equal
 
-from task_with_test.report import build_report
+from task_with_test.report_without_gui import build_report
 
 CONFIG = {
     "sheets": {"raw": "raw", "dict": "dict"},

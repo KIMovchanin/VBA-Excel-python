@@ -32,10 +32,6 @@ def _require_columns(df: pd.DataFrame, needed: list[str], where: str) -> None:
 # ---------- ЧИСТАЯ ЛОГИКА (тестируется напрямую) ----------
 
 def build_report(df_raw: pd.DataFrame, df_dict: pd.DataFrame, config: Dict) -> pd.DataFrame:
-    """
-    На вход: сырые данные и справочник (как DataFrame) + конфиг.
-    На выход: агрегированный отчёт (DataFrame) без записи на диск.
-    """
     C = config["columns"]
     out_rev_col = config["output"]["revenue_column"]
 
@@ -55,7 +51,6 @@ def build_report(df_raw: pd.DataFrame, df_dict: pd.DataFrame, config: Dict) -> p
     if C["category"] in df_raw.columns:
         df_raw = df_raw.drop(columns=[C["category"]])
 
-    # Объединение: many_to_one гарантирует, что в dict один код -> одна строка
     df_merge = pd.merge(
         df_raw,
         df_dict[[C["code"], C["price"], C["category"]]],
@@ -64,7 +59,6 @@ def build_report(df_raw: pd.DataFrame, df_dict: pd.DataFrame, config: Dict) -> p
         validate="many_to_one",
     )
 
-    # Диагностика качества данных
     log.info(f"После merge: {df_merge.shape}")
     n_price_na = df_merge[C["price"]].isna().sum()
     log.info(f"Пустых цен после merge: {n_price_na}")
@@ -73,7 +67,6 @@ def build_report(df_raw: pd.DataFrame, df_dict: pd.DataFrame, config: Dict) -> p
     df_merge["effective_price"] = df_merge[C["price_override"]].fillna(df_merge[C["price"]])
     df_merge["each_sum"] = df_merge["effective_price"] * df_merge[C["qty"]]
 
-    # Агрегация: по категории и дате
     out = (
         df_merge
         .groupby([C["category"], C["date"]], dropna=False)["each_sum"]
@@ -101,7 +94,6 @@ def create_report(file_name: str, out_path: str, config: Dict) -> pd.DataFrame |
         log.error("Не удалось открыть Excel: %s", e)
         return None
 
-    # Имена листов — из конфига
     raw_sheet = config["sheets"]["raw"]
     dict_sheet = config["sheets"]["dict"]
 
@@ -114,12 +106,10 @@ def create_report(file_name: str, out_path: str, config: Dict) -> pd.DataFrame |
 
     log.info(f"Прочитан лист {raw_sheet}: {df_raw.shape[0]} строк, {df_raw.shape[1]} столбцов")
 
-    # Чистая логика
     result = build_report(df_raw, df_dict, config)
 
     log.info(f"Готовим отчёт: {result.shape[0]} строк, {result.shape[1]} столбцов")
 
-    # Запись в Excel
     out_sheet = config["output"]["sheet_name"]
     try:
         result.to_excel(out_path, sheet_name=out_sheet, index=False)

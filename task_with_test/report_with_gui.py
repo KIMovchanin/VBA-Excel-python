@@ -45,7 +45,6 @@ def build_report(df_raw: pd.DataFrame, df_dict: pd.DataFrame, config: Dict) -> p
     df_raw[C["price_override"]] = pd.to_numeric(df_raw[C["price_override"]], errors="coerce")
     df_dict[C["price"]] = pd.to_numeric(df_dict[C["price"]], errors="coerce")
 
-    # если category уже есть в raw, удаляем, чтобы не получить category_x/category_y
     if C["category"] in df_raw.columns:
         df_raw = df_raw.drop(columns=[C["category"]])
 
